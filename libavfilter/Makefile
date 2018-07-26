@@ -23,6 +23,7 @@ OBJS = allfilters.o                                                     \
        graphparser.o                                                    \
        version.o                                                        \
        video.o                                                          \
+       lavfutils.o                                                      \
 
 OBJS-$(HAVE_LIBC_MSVCRT)                     += file_open.o
 OBJS-$(HAVE_THREADS)                         += pthread.o
