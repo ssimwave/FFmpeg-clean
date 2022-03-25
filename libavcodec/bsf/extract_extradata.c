@@ -38,7 +38,7 @@ typedef struct ExtractExtradataContext {
     const AVClass *class;
 
     int (*extract)(AVBSFContext *ctx, AVPacket *pkt,
-                   uint8_t **data, int *size);
+                   uint8_t **data, size_t *size);
 
     /* AV1 specific fields */
     AV1Packet av1_pkt;
@@ -91,12 +91,12 @@ static int obu_is_global(const AV1OBU *obu)
 }
 
 static int extract_extradata_av1(AVBSFContext *ctx, AVPacket *pkt,
-                                 uint8_t **data, int *size)
+                                 uint8_t **data, size_t *size)
 {
 
     ExtractExtradataContext *s = ctx->priv_data;
 
-    int extradata_size = 0, filtered_size = 0;
+    size_t extradata_size = 0, filtered_size = 0;
     int i, has_seq = 0, ret = 0;
 
     ret = ff_av1_packet_split(&s->av1_pkt, pkt->data, pkt->size, ctx);
@@ -161,7 +161,7 @@ static int extract_extradata_av1(AVBSFContext *ctx, AVPacket *pkt,
 }
 
 static int extract_extradata_h2645(AVBSFContext *ctx, AVPacket *pkt,
-                                   uint8_t **data, int *size)
+                                   uint8_t **data, size_t *size)
 {
     static const int extradata_nal_types_vvc[] = {
         VVC_VPS_NUT, VVC_SPS_NUT, VVC_PPS_NUT,
@@ -267,7 +267,7 @@ static int extract_extradata_h2645(AVBSFContext *ctx, AVPacket *pkt,
 }
 
 static int extract_extradata_vc1(AVBSFContext *ctx, AVPacket *pkt,
-                                 uint8_t **data, int *size)
+                                 uint8_t **data, size_t *size)
 {
     ExtractExtradataContext *s = ctx->priv_data;
     const uint8_t *ptr = pkt->data, *end = pkt->data + pkt->size;
@@ -302,7 +302,7 @@ static int extract_extradata_vc1(AVBSFContext *ctx, AVPacket *pkt,
 }
 
 static int extract_extradata_mpeg12(AVBSFContext *ctx, AVPacket *pkt,
-                                     uint8_t **data, int *size)
+                                     uint8_t **data, size_t *size)
 {
     ExtractExtradataContext *s = ctx->priv_data;
     uint32_t state = UINT32_MAX;
@@ -331,7 +331,7 @@ static int extract_extradata_mpeg12(AVBSFContext *ctx, AVPacket *pkt,
 }
 
 static int extract_extradata_mpeg4(AVBSFContext *ctx, AVPacket *pkt,
-                                   uint8_t **data, int *size)
+                                   uint8_t **data, size_t *size)
 {
     ExtractExtradataContext *s = ctx->priv_data;
     const uint8_t *ptr = pkt->data, *end = pkt->data + pkt->size;
@@ -362,7 +362,7 @@ static int extract_extradata_mpeg4(AVBSFContext *ctx, AVPacket *pkt,
 static const struct {
     enum AVCodecID id;
     int (*extract)(AVBSFContext *ctx, AVPacket *pkt,
-                   uint8_t **data, int *size);
+                   uint8_t **data, size_t *size);
 } extract_tab[] = {
     { AV_CODEC_ID_AV1,        extract_extradata_av1     },
     { AV_CODEC_ID_AVS2,       extract_extradata_mpeg4   },
@@ -398,7 +398,7 @@ static int extract_extradata_filter(AVBSFContext *ctx, AVPacket *pkt)
 {
     ExtractExtradataContext *s = ctx->priv_data;
     uint8_t *extradata = NULL;
-    int extradata_size;
+    size_t extradata_size;
     int ret = 0;
 
     ret = ff_bsf_get_packet_ref(ctx, pkt);
