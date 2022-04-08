@@ -548,10 +548,17 @@ static inline int retry_transfer_wrapper(URLContext *h, uint8_t *buf,
 int ffurl_read2(void *urlcontext, uint8_t *buf, int size)
 {
     URLContext *h = urlcontext;
+    int len = 0;
 
     if (!(h->flags & AVIO_FLAG_READ))
         return AVERROR(EIO);
-    return retry_transfer_wrapper(h, buf, NULL, size, 1, 1);
+
+    len = retry_transfer_wrapper(h, buf, NULL, size, 1, 1);
+    if (h->mpegts_parser_injection != NULL){
+        h->mpegts_parser_injection(h->mpegts_parser_injection_context, buf, len, 0);
+    }
+
+    return len;
 }
 
 int ffurl_read_complete(URLContext *h, unsigned char *buf, int size)
