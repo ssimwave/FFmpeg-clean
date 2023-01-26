@@ -57,7 +57,7 @@ enum MXFMetadataSetType {
     JPEG2000SubDescriptor,
     MetadataSetTypeNB
     PHDRMetadataTrackSubDescriptor,
-    PHDRDoViGlobalData,
+    PHDRGlobalData,
 };
 
 enum MXFFrameLayout {
