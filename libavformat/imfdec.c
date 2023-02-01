@@ -121,6 +121,7 @@ typedef struct IMFContext {
     char *asset_map_paths;
     AVIOInterruptCB *interrupt_callback;
     AVDictionary *avio_opts;
+    AVDictionary *mxf_format_options;
     FFIMFCPL *cpl;
     IMFAssetLocatorMap asset_locator_map;
     uint32_t track_count;
@@ -391,6 +392,9 @@ static int open_track_resource_context(AVFormatContext *s,
     if ((ret = av_dict_copy(&opts, c->avio_opts, 0)) < 0)
         goto cleanup;
 
+    if ((ret = av_dict_copy(&opts, c->mxf_format_options, 0)) < 0)
+        goto cleanup;
+
     ret = avformat_open_input(&track_resource->ctx,
                               track_resource->locator->absolute_uri,
                               NULL,
@@ -585,6 +589,18 @@ static int set_context_streams_from_tracks(AVFormatContext *s)
 
         asset_stream->id = i;
         asset_stream->nb_frames = 0;
+        ret = avcodec_parameters_copy(asset_stream->codecpar, first_resource_stream->codecpar);
+        if (ret < 0) {
+            av_log(s, AV_LOG_ERROR, "Could not copy stream parameters\n");
+            return ret;
+        }
+
+        ret = av_dict_copy(&asset_stream->metadata, first_resource_stream->metadata, 0);
+        if (ret < 0) {
+            av_log(s, AV_LOG_ERROR, "Could not copy stream metadata\n");
+            return ret;
+        }
+
         avpriv_set_pts_info(asset_stream,
                             first_resource_stream->pts_wrap_bits,
                             first_resource_stream->time_base.num,
@@ -1003,6 +1019,14 @@ static const AVOption imf_options[] = {
         .type        = AV_OPT_TYPE_STRING,
         .default_val = {.str = NULL},
         .flags       = AV_OPT_FLAG_DECODING_PARAM,
+    },
+    {
+        .name        = "mxf_format_options",
+        .help        = "Set options for internal MXF demuxer",
+        .offset      = offsetof(IMFContext, mxf_format_options),
+        .type        = AV_OPT_TYPE_DICT,
+        .default_val = {.str = NULL},
+        .flags      = AV_OPT_FLAG_DECODING_PARAM,
     },
     {NULL},
 };
