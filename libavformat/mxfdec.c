@@ -2474,15 +2474,16 @@ static int mxf_add_metadata_stream(MXFContext *mxf, MXFTrack *track)
 static MXFTrack* mxf_get_phdr_metadata_track(MXFContext* mxf, MXFPHDRMetadataTrackSubDescriptor* track_subdescriptor)
 {
     MXFTrack* phdr_metadata_track = NULL;
+    MXFMetadataSetGroup *mg = &mxf->metadata_set_groups[Track];
 
     if (!track_subdescriptor) {
         return NULL;
     }
 
     // Obtain the actual MXF track containing presumed PHDR based on mapped track ID
-    for (size_t k = 0; k < mxf->metadata_sets_count; k++) {
-        MXFMetadataSet *metadata = mxf->metadata_sets[k];
-        if (metadata->type == Track && (track_subdescriptor->source_track_id == ((MXFTrack*)(metadata))->track_id)) {
+    for (size_t k = 0; k < mg->metadata_sets_count; k++) {
+        MXFMetadataSet *metadata = mg->metadata_sets[k];
+        if (track_subdescriptor->source_track_id == ((MXFTrack*)(metadata))->track_id) {
             phdr_metadata_track = (MXFTrack*)metadata;
             break;
         }
@@ -2497,11 +2498,10 @@ static MXFTrack* mxf_get_phdr_metadata_track(MXFContext* mxf, MXFPHDRMetadataTra
 static MXFPHDRMetadataTrackSubDescriptor* mxf_get_phdr_metadata_track_subdescriptor(MXFContext* mxf)
 {
     // Obtain PHDR Metadata track information
-    for (size_t k = 0; k < mxf->metadata_sets_count; k++) {
-        MXFMetadataSet *metadata = mxf->metadata_sets[k];
-        if (metadata->type == PHDRMetadataTrackSubDescriptor) {
-            return ((MXFPHDRMetadataTrackSubDescriptor*)metadata);
-        }
+    MXFMetadataSetGroup *mg = &mxf->metadata_set_groups[PHDRMetadataTrackSubDescriptor];
+    for (size_t k = 0; k < mg->metadata_sets_count; k++) {
+        MXFMetadataSet *metadata = mg->metadata_sets[k];
+        return ((MXFPHDRMetadataTrackSubDescriptor*)metadata);
     }
 
     // No interleaved PHDR metadata exists
@@ -4321,7 +4321,7 @@ static int mxf_read_packet(AVFormatContext *s, AVPacket *pkt)
                 av_log(s, AV_LOG_DEBUG, "found J2K frame, expecting PHDR metadata\n");
 
                 // Next immediate KLV is supposed to be a PHDR element
-                ret = klv_read_packet(&nextKlv, s->pb);
+                ret = klv_read_packet(mxf, &nextKlv, s->pb);
                 if (ret < 0) {
                     mxf->current_klv_data = (KLVPacket){{0}};
                     return ret;
