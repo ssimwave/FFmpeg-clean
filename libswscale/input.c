@@ -201,7 +201,7 @@ static av_always_inline void rgb48ToUV_c_template(uint16_t *dstU,
     int32_t ru = rgb2yuv[RU_IDX], gu = rgb2yuv[GU_IDX], bu = rgb2yuv[BU_IDX];
     int32_t rv = rgb2yuv[RV_IDX], gv = rgb2yuv[GV_IDX], bv = rgb2yuv[BV_IDX];
     av_assert1(src1 == src2);
-    if (is_be(origin)) {
+    if (is_be) {
         for (i = 0; i < width; i++) {
             unsigned int r_b = AV_RB16(&src1[i * 3 + 0]);
             unsigned int g   = AV_RB16(&src1[i * 3 + 1]);
