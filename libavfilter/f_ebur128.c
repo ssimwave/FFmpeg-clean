@@ -532,9 +532,9 @@ static int config_audio_output(AVFilterLink *outlink)
             return AVERROR(ENOMEM);
 
         av_opt_set_chlayout(ebur128->swr_ctx, "in_chlayout",    &outlink->ch_layout, 0);
-        
+
         if (ebur128->peak_mode & FILTERED) {
-            unsigned int j, f;
+            unsigned int j;
             ebur128->interp     = av_calloc(1, sizeof(interpolator));
             if (!ebur128->interp) {
                 return AVERROR(ENOMEM);
@@ -1196,6 +1196,7 @@ static int query_formats(AVFilterContext *ctx)
 static av_cold void uninit(AVFilterContext *ctx)
 {
     EBUR128Context *ebur128 = ctx->priv;
+    int i;
 
     /* dual-mono correction */
     if (ebur128->nb_channels == 1 && ebur128->dual_mono) {
